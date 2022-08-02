@@ -1,17 +1,18 @@
-import { track, trriger } from "./effect";
+import { mutableHandlers, readonlyHandlers } from "./baseHandlers";
+
+// 抽离公共的创建proxy操作
+function createReactiveObj(target, baseHandler) {
+  return new Proxy(target, baseHandler);
+}
 
 export function reactive(raw) {
   // reactive 通过proxy代理 get set 操作
-  return new Proxy(raw, {
-    get: function getter(target, key) {
-      const res = Reflect.get(target, key);
-      track(target, key);
-      return res;
-    },
-    set: function setter(target, key, value) {
-      const res = Reflect.set(target, key, value);
-      trriger(target, key);
-      return res;
-    },
-  });
+  //   return new Proxy(raw, mutableHandlers);
+  return createReactiveObj(raw, mutableHandlers);
+}
+// 不需要收集依赖
+export function readonly(raw) {
+  // reactive 通过proxy代理 get set 操作
+  //   return new Proxy(raw, readonlyHandlers);
+  return createReactiveObj(raw, readonlyHandlers);
 }

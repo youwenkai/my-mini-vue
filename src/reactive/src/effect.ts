@@ -71,7 +71,7 @@ export function stop(runner) {
   runner.effect.stop();
 }
 
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect !== undefined;
 }
 
@@ -92,6 +92,10 @@ export function track(target, key) {
     depsMap.set(key, deps);
   }
 
+  trackEffect(deps);
+}
+
+export function trackEffect(deps: Set<any>) {
   // 如果deps内有该effect了
   if (deps.has(activeEffect)) return;
 
@@ -107,6 +111,10 @@ export function trigger(target, key) {
   const depsMap = targetMap.get(target);
   const deps = depsMap.get(key);
 
+  triggerEffect(deps);
+}
+
+export function triggerEffect(deps: Set<any>) {
   deps.forEach((effect) => {
     // 在update的时候 要去检查effect是否有调度器 scheduler
     if (effect.scheduler) {

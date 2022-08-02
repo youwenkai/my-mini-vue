@@ -1,4 +1,4 @@
-import { track, trriger } from "./effect";
+import { track, trigger } from "./effect";
 
 export enum ReactiveFlags {
   IS_REACTIVE = "__v_isReactive",
@@ -25,7 +25,7 @@ function createGetter(isReadonly = false) {
 function createSetter() {
   return function setter(target, key, value) {
     const res = Reflect.set(target, key, value);
-    trriger(target, key);
+    trigger(target, key);
     return res;
   };
 }

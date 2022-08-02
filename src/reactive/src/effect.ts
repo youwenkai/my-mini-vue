@@ -9,8 +9,20 @@ class ReactiveEffect {
     this._fn = fn;
   }
   run() {
+    //如果active为false是代表是已经执行了stop操作
+    if (!this.active) {
+      return this._fn();
+    }
+
+    // 还处于激活状态
+    // 需要被收集
     activeEffect = this;
-    return this._fn();
+    shouldTrack = true;
+    const result = this._fn();
+
+    // 关闭
+    shouldTrack = false;
+    return result;
   }
 
   // 从依赖dep内删除该effect
@@ -32,12 +44,13 @@ function cleanupEffect(effect) {
   effect.deps.forEach((dep) => {
     dep.delete(effect);
   });
+  effect.deps.length = 0;
 }
 
 // 正在执行的effect
 let activeEffect: any = null;
-// // 是否需要收集依赖
-// let shouldTrack: any = null;
+// 是否需要收集依赖 当effect run的时候 收集依赖
+let shouldTrack: any = null;
 
 export function effect(fn, options: any = {}) {
   // effect 收集的fn需要执行一次
@@ -58,9 +71,15 @@ export function stop(runner) {
   runner.effect.stop();
 }
 
+function isTracking() {
+  return shouldTrack && activeEffect !== undefined;
+}
+
 const targetMap = new Map();
 export function track(target, key) {
   // target -> key -> dep
+
+  if (!isTracking()) return;
 
   let depsMap = targetMap.get(target);
   if (!depsMap) {
@@ -73,8 +92,8 @@ export function track(target, key) {
     depsMap.set(key, deps);
   }
 
-  if (!activeEffect) return;
-  // if (!shouldTrack) return;
+  // 如果deps内有该effect了
+  if (deps.has(activeEffect)) return;
 
   deps.add(activeEffect);
   // 将当前effect 属于哪个dep 注入到effect内
@@ -84,7 +103,7 @@ export function track(target, key) {
   activeEffect.deps.push(deps);
 }
 
-export function trriger(target, key) {
+export function trigger(target, key) {
   const depsMap = targetMap.get(target);
   const deps = depsMap.get(key);
 

@@ -1,4 +1,6 @@
+import { isObject } from "../../shared";
 import { track, trigger } from "./effect";
+import { reactive, readonly } from "./reactive";
 
 export enum ReactiveFlags {
   IS_REACTIVE = "__v_isReactive",
@@ -8,12 +10,17 @@ export enum ReactiveFlags {
 // 抽离出公共的get set 操作
 function createGetter(isReadonly = false) {
   return function getter(target, key) {
-    const res = Reflect.get(target, key);
-
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly;
     } else if (key === ReactiveFlags.IS_READONLY) {
       return isReadonly;
+    }
+
+    const res = Reflect.get(target, key);
+    // 如果res为引用类型时 需要嵌套处理
+    // 对象是不需要 收集依赖
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive(res);
     }
 
     if (!isReadonly) {

@@ -24,4 +24,13 @@ describe("reactive", () => {
     expect(isReadonly(readonlyOnj)).toBe(true);
     expect(isReadonly(original)).toBe(false);
   });
+
+  test("nested reactive", () => {
+    const original = { nested: { foo: 1 }, array: [{ bar: 2 }] };
+    const ob = reactive(original);
+
+    expect(isReactive(ob.nested)).toBe(true);
+    expect(isReactive(ob.array)).toBe(true);
+    expect(isReactive(ob.array[0])).toBe(true);
+  });
 });

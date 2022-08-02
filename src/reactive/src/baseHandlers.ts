@@ -1,9 +1,21 @@
 import { track, trriger } from "./effect";
 
+export enum ReactiveFlags {
+  IS_REACTIVE = "__v_isReactive",
+  IS_READONLY = "__v_isReadonly",
+}
+
 // 抽离出公共的get set 操作
 function createGetter(isReadonly = false) {
   return function getter(target, key) {
     const res = Reflect.get(target, key);
+
+    if (key === ReactiveFlags.IS_REACTIVE) {
+      return !isReadonly;
+    } else if (key === ReactiveFlags.IS_READONLY) {
+      return isReadonly;
+    }
+
     if (!isReadonly) {
       track(target, key);
     }

@@ -36,6 +36,8 @@ function cleanupEffect(effect) {
 
 // 正在执行的effect
 let activeEffect: any = null;
+// // 是否需要收集依赖
+// let shouldTrack: any = null;
 
 export function effect(fn, options: any = {}) {
   // effect 收集的fn需要执行一次
@@ -60,7 +62,6 @@ const targetMap = new Map();
 export function track(target, key) {
   // target -> key -> dep
 
-  if (!activeEffect) return;
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -71,6 +72,9 @@ export function track(target, key) {
     deps = new Set();
     depsMap.set(key, deps);
   }
+
+  if (!activeEffect) return;
+  // if (!shouldTrack) return;
 
   deps.add(activeEffect);
   // 将当前effect 属于哪个dep 注入到effect内

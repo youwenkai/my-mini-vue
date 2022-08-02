@@ -1,4 +1,4 @@
-import { isObject } from "../../shared";
+import { extend, isObject } from "../../shared";
 import { track, trigger } from "./effect";
 import { reactive, readonly } from "./reactive";
 
@@ -8,7 +8,7 @@ export enum ReactiveFlags {
 }
 
 // 抽离出公共的get set 操作
-function createGetter(isReadonly = false) {
+function createGetter(isReadonly = false, isShallowReadonly = false) {
   return function getter(target, key) {
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly;
@@ -17,6 +17,11 @@ function createGetter(isReadonly = false) {
     }
 
     const res = Reflect.get(target, key);
+
+    // 如果是浅层
+    if (isShallowReadonly) {
+      return res;
+    }
     // 如果res为引用类型时 需要嵌套处理
     // 对象是不需要 收集依赖
     if (isObject(res)) {
@@ -40,11 +45,9 @@ function createSetter() {
 const get = createGetter();
 const set = createSetter();
 const readonlyGet = createGetter(true);
+const shollowReadonlyGet = createGetter(true, true);
 
-export const mutableHandlers = {
-  get,
-  set,
-};
+export const mutableHandlers = { get, set };
 
 export const readonlyHandlers = {
   get: readonlyGet,
@@ -53,3 +56,7 @@ export const readonlyHandlers = {
     return true;
   },
 };
+
+export const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+  get: shollowReadonlyGet,
+});

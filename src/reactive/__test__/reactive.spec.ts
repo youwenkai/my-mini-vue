@@ -1,4 +1,10 @@
-import { isReactive, isReadonly, reactive, readonly } from "../src/reactive";
+import {
+  isProxy,
+  isReactive,
+  isReadonly,
+  reactive,
+  readonly,
+} from "../src/reactive";
 
 describe("reactive", () => {
   it("happy path", () => {
@@ -23,6 +29,14 @@ describe("reactive", () => {
     expect(isReactive(readonlyOnj)).toBe(false);
     expect(isReadonly(readonlyOnj)).toBe(true);
     expect(isReadonly(original)).toBe(false);
+  });
+
+  it("isProxy", () => {
+    const original = { foo: 1 };
+    const readonlyOnj = readonly(original);
+
+    expect(isProxy(readonlyOnj)).toBe(true);
+    expect(isProxy(original)).toBe(false);
   });
 
   test("nested reactive", () => {

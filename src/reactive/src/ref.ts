@@ -6,6 +6,7 @@ class RefImpl {
   private _value: any;
   private _deps: Set<any>;
   private _raw: any;
+  private __v_isRef = true;
   constructor(value) {
     // this._value = value;
     this._raw = value;
@@ -44,4 +45,13 @@ function convert(value) {
 
 export function ref(value) {
   return new RefImpl(value);
+}
+
+export function isRef(ref) {
+  return !!ref.__v_isRef;
+}
+
+// 结构ref 如果是ref类型 就返回value值
+export function unref(ref) {
+  return isRef(ref) ? ref.value : ref;
 }

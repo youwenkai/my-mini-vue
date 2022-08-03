@@ -55,3 +55,22 @@ export function isRef(ref) {
 export function unref(ref) {
   return isRef(ref) ? ref.value : ref;
 }
+
+export function proxyRefs(objectWithRefs) {
+  return new Proxy(objectWithRefs, {
+    get(target, key) {
+      return unref(Reflect.get(target, key));
+    },
+    set(target, key, value) {
+      const oldValue = target[key];
+      // 如果oldvalue 是ref类型的话 传入值不是ref 替换.value值
+      // 否则 全替换
+      if (isRef(oldValue) && !isRef(value)) {
+        target[key].value = value;
+        return true;
+      } else {
+        return Reflect.set(target, key, value);
+      }
+    },
+  });
+}

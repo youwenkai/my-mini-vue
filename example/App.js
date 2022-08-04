@@ -7,6 +7,9 @@ export default {
     };
   },
   render() {
-    return h("div", { id: "111" }, "hi, mini-vue");
+    return h("div", { id: "111" }, [
+      h("div", { id: 222 }, "hi"),
+      h("div", { id: 333 }, "mini-vue"),
+    ]);
   },
 };

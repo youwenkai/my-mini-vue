@@ -8,7 +8,7 @@ export function setupComponent(instance) {
   // initSlots();
 
   // 处理setup
-  const setupResult = setupStatefulComponent(instance);
+  setupStatefulComponent(instance);
 }
 
 function setupStatefulComponent(instance: any) {

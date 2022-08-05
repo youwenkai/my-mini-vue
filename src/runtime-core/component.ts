@@ -1,5 +1,13 @@
-export function createComponentInstance(vnode) {
-  return { vnode, type: vnode.type };
+interface IComponentInstance {
+  vnode: any;
+  type: any;
+  setupState: any;
+  proxy: any;
+}
+
+export function createComponentInstance(vnode): IComponentInstance {
+  const instance = { vnode, type: vnode.type, setupState: {}, proxy: null };
+  return instance;
 }
 
 export function setupComponent(instance) {

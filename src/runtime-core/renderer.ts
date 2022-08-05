@@ -1,5 +1,6 @@
 import { isObject } from "../shared/index";
 import { createComponentInstance, setupComponent } from "./component";
+import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 
 export function render(vnode, container) {
   patch(vnode, container);
@@ -24,16 +25,38 @@ function mountComponent(vnode, container) {
   // 生成组件实例
   const instance = createComponentInstance(vnode);
 
+  // 生成proxy代理对象
+  instance.proxy = new Proxy(
+    { _: instance },
+    PublicInstanceProxyHandlers
+    // FIXME: 抽离出去
+    // {
+    //   get(target, key) {
+    //     const { setupState } = instance;
+    //     if (key in setupState) {
+    //       return setupState[key];
+    //     }
+    //     if (key === "$el") {
+    //       return instance.vnode.el;
+    //     }
+    //   },
+    // }
+  );
+
   //安装组件
   setupComponent(instance);
 
   //render
-  setupRenderEffect(instance, container);
+  setupRenderEffect(instance, vnode, container);
 }
-export function setupRenderEffect(instance: any, container) {
-  const subTree = instance.render();
+export function setupRenderEffect(instance: any, vnode, container) {
+  const { proxy } = instance;
+  const subTree = instance.render.call(proxy);
 
   patch(subTree, container);
+
+  // component组件vnode subTree是组件内元素的
+  vnode.el = subTree.el;
 }
 
 export function processElement(vnode, container) {
@@ -42,8 +65,7 @@ export function processElement(vnode, container) {
 
 export function mountElement(vnode: any, container: any) {
   const { type, props, children } = vnode;
-  const el = document.createElement(type);
-  vnode.el = el;
+  const el = (vnode.el = document.createElement(type));
   if (props) {
     for (const prop in props) {
       el.setAttribute(prop, props[prop]);

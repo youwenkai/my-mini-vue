@@ -1,3 +1,4 @@
+import { isObject } from "../../shared/index";
 import {
   mutableHandlers,
   ReactiveFlags,
@@ -7,6 +8,9 @@ import {
 
 // 抽离公共的创建proxy操作
 function createReactiveObj(target: any, baseHandler: any) {
+  if (!isObject(target)) {
+    console.warn("target 不是一个对象", target);
+  }
   return new Proxy(target, baseHandler);
 }
 

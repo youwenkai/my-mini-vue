@@ -1,3 +1,6 @@
+import { shallowReadonly } from "../reactive/src/reactive";
+import { initProps } from "./componentProps";
+
 interface IComponentInstance {
   vnode: any;
   type: any;
@@ -11,8 +14,9 @@ export function createComponentInstance(vnode): IComponentInstance {
 }
 
 export function setupComponent(instance) {
+  const { props } = instance.vnode;
   // TODO
-  // initProps();
+  initProps(instance, props);
   // initSlots();
 
   // 处理setup
@@ -26,7 +30,8 @@ function setupStatefulComponent(instance: any) {
 
   if (setup) {
     // setup 可以返回function / object
-    const setupResult = setup();
+    // props是shallowReadonly
+    const setupResult = setup(shallowReadonly(instance.props));
     // 所以需要进一步处理
     handlerSetupResult(instance, setupResult);
   }

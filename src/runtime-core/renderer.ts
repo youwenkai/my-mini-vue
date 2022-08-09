@@ -69,7 +69,13 @@ export function mountElement(vnode: any, container: any) {
   const el = (vnode.el = document.createElement(type));
   if (props) {
     for (const prop in props) {
-      el.setAttribute(prop, props[prop]);
+      const isOn = /^on[A-Z]/.test(prop);
+      if (isOn) {
+        const eventName = prop.slice(2).toLowerCase();
+        el.addEventListener(eventName, props[prop]);
+      } else {
+        el.setAttribute(prop, props[prop]);
+      }
     }
   }
 

@@ -29,11 +29,13 @@ const FooTwo = {
 const Foo = {
   setup() {
     const foo = inject("foo");
+    const bar = inject("bar1", "默认值");
+    const fn = inject("bar2", () => "测试");
 
-    return { foo };
+    return { foo, bar, fn };
   },
   render() {
-    return h("p", {}, this.foo);
+    return h("p", {}, `${this.foo}__${this.bar}__${this.fn}`);
   },
 };
 

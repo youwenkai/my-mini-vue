@@ -31,7 +31,11 @@ export function inject(key, defaultValue) {
     if (hasOwn(provides, key)) {
       return provides[key];
     } else if (defaultValue) {
-      return defaultValue;
+      if (typeof defaultValue === "function") {
+        return defaultValue();
+      } else {
+        return defaultValue;
+      }
     } else {
       console.error("inject not find");
     }

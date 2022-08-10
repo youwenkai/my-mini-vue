@@ -9,10 +9,12 @@ interface IComponentInstance {
   setupState: any;
   proxy: any;
   slots: any;
+  provides: any;
   emit: any;
 }
 
 export function createComponentInstance(vnode, parent): IComponentInstance {
+  console.log("createComponentInstance parent", parent);
   const instance = {
     vnode,
     type: vnode.type,
@@ -20,6 +22,8 @@ export function createComponentInstance(vnode, parent): IComponentInstance {
     proxy: null,
     slots: {},
     parent,
+    // 为了跨级获取 provide需要继承父级的provide
+    provides: parent ? parent.provides : {},
     emit: () => {},
   };
 

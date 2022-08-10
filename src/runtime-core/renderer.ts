@@ -3,6 +3,7 @@ import { createComponentInstance, setupComponent } from "./component";
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 
 export const Fragment = Symbol("Fragment");
+export const Text = Symbol("Text");
 
 export function render(vnode, container) {
   patch(vnode, container);
@@ -15,6 +16,9 @@ function patch(vnode: any, container: any) {
   switch (type) {
     case Fragment:
       processFragment(vnode, container);
+      break;
+    case Text:
+      processText(vnode, container);
       break;
     default:
       //判断 element component
@@ -109,4 +113,9 @@ function mountChildren(vnode: any, container: any) {
 function processFragment(vnode: any, container: any) {
   // 只渲染子元素
   mountChildren(vnode, container);
+}
+function processText(vnode: any, container: any) {
+  const { children } = vnode;
+  const textVNode = (vnode.el = document.createTextNode(children));
+  container.append(textVNode);
 }

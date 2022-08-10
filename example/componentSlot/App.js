@@ -1,4 +1,4 @@
-import { h } from "../../lib/runtime-core.esm.js";
+import { createTextVNode, h } from "../../lib/runtime-core.esm.js";
 import Foo from "./Foo.js";
 
 export default {
@@ -16,7 +16,10 @@ export default {
       Foo,
       {},
       {
-        header: ({ age }) => h("div", {}, "header" + age),
+        header: ({ age }) => [
+          h("div", {}, "header" + age),
+          createTextVNode("text 节点"),
+        ],
         footer: () => h("div", {}, "footer"),
       }
     );

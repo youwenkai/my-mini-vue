@@ -1,4 +1,5 @@
 import { ShapeFlag } from "../shared/shapeFlags";
+import { Text } from "./renderer";
 
 export function createVNode(type, props?, children?) {
   const vnode = {
@@ -28,4 +29,8 @@ function getShapeFlag(type: any) {
   return typeof type === "string"
     ? ShapeFlag.ELEMENT
     : ShapeFlag.SETUPFUL_COMPONENT;
+}
+
+export function createTextVNode(text: string) {
+  return createVNode(Text, {}, text);
 }

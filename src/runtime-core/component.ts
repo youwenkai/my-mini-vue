@@ -1,12 +1,14 @@
 import { shallowReadonly } from "../reactive/src/reactive";
 import { emit } from "./componentEmits";
 import { initProps } from "./componentProps";
+import { initSlots } from "./componentSlots";
 
 interface IComponentInstance {
   vnode: any;
   type: any;
   setupState: any;
   proxy: any;
+  slots: any;
   emit: any;
 }
 
@@ -16,6 +18,7 @@ export function createComponentInstance(vnode): IComponentInstance {
     type: vnode.type,
     setupState: {},
     proxy: null,
+    slots: {},
     emit: () => {},
   };
 
@@ -24,10 +27,10 @@ export function createComponentInstance(vnode): IComponentInstance {
 }
 
 export function setupComponent(instance) {
-  const { props } = instance.vnode;
+  const { props, children } = instance.vnode;
   // TODO
   initProps(instance, props);
-  // initSlots();
+  initSlots(instance, children);
 
   // 处理setup
   setupStatefulComponent(instance);

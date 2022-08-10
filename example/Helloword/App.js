@@ -3,6 +3,7 @@ import Foo from "./Foo.js";
 
 window.self = null;
 export default {
+  name: "app",
   setup() {
     return {
       msg: "setup msg mini-vue",

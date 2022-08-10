@@ -12,13 +12,14 @@ interface IComponentInstance {
   emit: any;
 }
 
-export function createComponentInstance(vnode): IComponentInstance {
+export function createComponentInstance(vnode, parent): IComponentInstance {
   const instance = {
     vnode,
     type: vnode.type,
     setupState: {},
     proxy: null,
     slots: {},
+    parent,
     emit: () => {},
   };
 
@@ -42,11 +43,18 @@ function setupStatefulComponent(instance: any) {
   const { setup } = Component;
 
   if (setup) {
+    // 标注当前正在执行的组件实例 在处理setup之前赋值
+    // 确保在setup内能使用
+    setCurrentInstance(instance);
     // setup 可以返回function / object
     // props是shallowReadonly
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     });
+
+    //处理完setup之后 销毁
+    setCurrentInstance(null);
+
     // 所以需要进一步处理
     handlerSetupResult(instance, setupResult);
   }
@@ -63,4 +71,15 @@ export function finishComponentSetup(instance: any) {
   if (Component.render) {
     instance.render = Component.render;
   }
+}
+
+// 当前激活的组件实例
+let currentInstance = null;
+
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+export function setCurrentInstance(instance) {
+  currentInstance = instance;
 }

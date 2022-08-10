@@ -5,17 +5,17 @@ import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 export const Fragment = Symbol("Fragment");
 export const Text = Symbol("Text");
 
-export function render(vnode, container) {
-  patch(vnode, container);
+export function render(vnode, container, parentComponent) {
+  patch(vnode, container, parentComponent);
 }
 
-function patch(vnode: any, container: any) {
+function patch(vnode: any, container: any, parentComponent) {
   const { shapeFlag, type } = vnode;
 
   // 新增Fragment -> 只渲染children
   switch (type) {
     case Fragment:
-      processFragment(vnode, container);
+      processFragment(vnode, container, parentComponent);
       break;
     case Text:
       processText(vnode, container);
@@ -24,21 +24,21 @@ function patch(vnode: any, container: any) {
       //判断 element component
       if (shapeFlag & ShapeFlag.SETUPFUL_COMPONENT) {
         // 处理组件
-        processComponent(vnode, container);
+        processComponent(vnode, container, parentComponent);
       } else if (shapeFlag & ShapeFlag.ELEMENT) {
-        processElement(vnode, container);
+        processElement(vnode, container, parentComponent);
       }
   }
 }
 
-function processComponent(vnode: any, container: any) {
+function processComponent(vnode: any, container: any, parentComponent) {
   // 挂载组件
-  mountComponent(vnode, container);
+  mountComponent(vnode, container, parentComponent);
 }
 
-function mountComponent(vnode, container) {
+function mountComponent(vnode, container, parentComponent) {
   // 生成组件实例
-  const instance = createComponentInstance(vnode);
+  const instance = createComponentInstance(vnode, parentComponent);
 
   // 生成proxy代理对象
   instance.proxy = new Proxy(
@@ -68,17 +68,17 @@ export function setupRenderEffect(instance: any, vnode, container) {
   const { proxy } = instance;
   const subTree = instance.render.call(proxy);
 
-  patch(subTree, container);
+  patch(subTree, container, instance);
 
   // component组件vnode subTree是组件内元素的
   vnode.el = subTree.el;
 }
 
-export function processElement(vnode, container) {
-  mountElement(vnode, container);
+export function processElement(vnode, container, parentComponent) {
+  mountElement(vnode, container, parentComponent);
 }
 
-export function mountElement(vnode: any, container: any) {
+export function mountElement(vnode: any, container: any, parentComponent) {
   const { type, props, children, shapeFlag } = vnode;
   const el = (vnode.el = document.createElement(type));
   if (props) {
@@ -96,23 +96,23 @@ export function mountElement(vnode: any, container: any) {
   if (shapeFlag & ShapeFlag.TEXT_CHILDREN) {
     el.textContent = children;
   } else if (shapeFlag & ShapeFlag.ARRAY_CHILDREN) {
-    mountChildren(vnode, el);
+    mountChildren(vnode, el, parentComponent);
   }
 
   container.append(el);
 }
-function mountChildren(vnode: any, container: any) {
+function mountChildren(vnode: any, container: any, parentComponent) {
   // throw new Error("Function not implemented.");
   const { children } = vnode;
   if (Array.isArray(children)) {
     children.forEach((child) => {
-      patch(child, container);
+      patch(child, container, parentComponent);
     });
   }
 }
-function processFragment(vnode: any, container: any) {
+function processFragment(vnode: any, container: any, parentComponent) {
   // 只渲染子元素
-  mountChildren(vnode, container);
+  mountChildren(vnode, container, parentComponent);
 }
 function processText(vnode: any, container: any) {
   const { children } = vnode;

@@ -9,7 +9,7 @@ export function createApp(rootComponent) {
       const vnode = createVNode(rootComponent);
 
       // 渲染组件
-      render(vnode, container);
+      render(vnode, container, null);
     },
   };
 }

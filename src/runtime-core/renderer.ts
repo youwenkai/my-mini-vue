@@ -7,7 +7,11 @@ export const Fragment = Symbol("Fragment");
 export const Text = Symbol("Text");
 
 export function createRenderer(options) {
-  const { createElement, patchProp, insert } = options;
+  const {
+    createElement: hostCreateElement,
+    patchProp: hostPatchProp,
+    insert: hostInsert,
+  } = options;
   function render(vnode, container, parentComponent) {
     patch(vnode, container, parentComponent);
   }
@@ -83,10 +87,10 @@ export function createRenderer(options) {
 
   function mountElement(vnode: any, container: any, parentComponent) {
     const { type, props, children, shapeFlag } = vnode;
-    const el = (vnode.el = createElement(type));
+    const el = (vnode.el = hostCreateElement(type));
     if (props) {
       for (const prop in props) {
-        patchProp(el, prop, props[prop]);
+        hostPatchProp(el, prop, props[prop]);
       }
     }
 
@@ -96,7 +100,7 @@ export function createRenderer(options) {
       mountChildren(vnode, el, parentComponent);
     }
     // container.append(el);
-    insert(el, container);
+    hostInsert(el, container);
   }
   function mountChildren(vnode: any, container: any, parentComponent) {
     // throw new Error("Function not implemented.");

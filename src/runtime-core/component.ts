@@ -1,3 +1,4 @@
+import { proxyRefs } from "../index";
 import { shallowReadonly } from "../reactive/src/reactive";
 import { emit } from "./componentEmits";
 import { initProps } from "./componentProps";
@@ -65,7 +66,7 @@ function setupStatefulComponent(instance: any) {
 }
 export function handlerSetupResult(instance: any, setupResult: any) {
   if (typeof setupResult === "object") {
-    instance.setupState = setupResult;
+    instance.setupState = proxyRefs(setupResult);
   }
   finishComponentSetup(instance);
 }

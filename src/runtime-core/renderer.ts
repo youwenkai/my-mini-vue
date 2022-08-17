@@ -1,3 +1,4 @@
+import { effect } from "../reactive/src";
 import { ShapeFlag } from "../shared/shapeFlags";
 import { createAppAPI } from "./apiCreateApp";
 import { createComponentInstance, setupComponent } from "./component";
@@ -12,40 +13,44 @@ export function createRenderer(options) {
     patchProp: hostPatchProp,
     insert: hostInsert,
   } = options;
-  function render(vnode, container, parentComponent) {
-    patch(vnode, container, parentComponent);
+  function render(n1, n2, container, parentComponent) {
+    patch(n1, n2, container, parentComponent);
   }
 
-  function patch(vnode: any, container: any, parentComponent) {
-    const { shapeFlag, type } = vnode;
+  function patch(n1, n2, container: any, parentComponent) {
+    const { shapeFlag, type } = n2;
 
     // 新增Fragment -> 只渲染children
     switch (type) {
       case Fragment:
-        processFragment(vnode, container, parentComponent);
+        processFragment(n2, container, parentComponent);
         break;
       case Text:
-        processText(vnode, container);
+        processText(n2, container);
         break;
       default:
         //判断 element component
         if (shapeFlag & ShapeFlag.SETUPFUL_COMPONENT) {
           // 处理组件
-          processComponent(vnode, container, parentComponent);
+          processComponent(n1, n2, container, parentComponent);
         } else if (shapeFlag & ShapeFlag.ELEMENT) {
-          processElement(vnode, container, parentComponent);
+          processElement(n1, n2, container, parentComponent);
         }
     }
   }
 
-  function processComponent(vnode: any, container: any, parentComponent) {
-    // 挂载组件
-    mountComponent(vnode, container, parentComponent);
+  function processComponent(n1, n2, container: any, parentComponent) {
+    if (!n1) {
+      // 挂载组件
+      mountComponent(n2, container, parentComponent);
+    } else {
+      console.log("更新组件");
+    }
   }
 
   function mountComponent(vnode, container, parentComponent) {
     // 生成组件实例
-    const instance = createComponentInstance(vnode, parentComponent);
+    const instance: any = createComponentInstance(vnode, parentComponent);
 
     // 生成proxy代理对象
     instance.proxy = new Proxy(
@@ -72,17 +77,33 @@ export function createRenderer(options) {
     setupRenderEffect(instance, vnode, container);
   }
   function setupRenderEffect(instance: any, vnode, container) {
-    const { proxy } = instance;
-    const subTree = instance.render.call(proxy);
+    effect(() => {
+      const { proxy, isMounted } = instance;
 
-    patch(subTree, container, instance);
-
-    // component组件vnode subTree是组件内元素的
-    vnode.el = subTree.el;
+      if (!isMounted) {
+        console.log("初始化");
+        const subTree = (instance.subTree = instance.render.call(proxy));
+        patch(null, subTree, container, instance);
+        // component组件vnode subTree是组件内元素的
+        vnode.el = subTree.el;
+        instance.isMounted = true;
+      } else {
+        console.log("更新");
+        const subTree = instance.render.call(proxy);
+        const prevSubtree = instance.subTree;
+        instance.subTree = subTree;
+        patch(prevSubtree, subTree, container, instance);
+        vnode.el = subTree.el;
+      }
+    });
   }
 
-  function processElement(vnode, container, parentComponent) {
-    mountElement(vnode, container, parentComponent);
+  function processElement(n1, n2, container, parentComponent) {
+    if (n1) {
+      patchElement(n1, n2, container);
+    } else {
+      mountElement(n2, container, parentComponent);
+    }
   }
 
   function mountElement(vnode: any, container: any, parentComponent) {
@@ -102,12 +123,17 @@ export function createRenderer(options) {
     // container.append(el);
     hostInsert(el, container);
   }
+  function patchElement(n1, n2, container) {
+    console.log("====patchElement");
+    console.log("prev vnode:", n1);
+    console.log("cur vnode:", n2);
+  }
   function mountChildren(vnode: any, container: any, parentComponent) {
     // throw new Error("Function not implemented.");
     const { children } = vnode;
     if (Array.isArray(children)) {
       children.forEach((child) => {
-        patch(child, container, parentComponent);
+        patch(child.el, child, container, parentComponent);
       });
     }
   }

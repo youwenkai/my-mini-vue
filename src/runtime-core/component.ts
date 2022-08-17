@@ -4,17 +4,7 @@ import { emit } from "./componentEmits";
 import { initProps } from "./componentProps";
 import { initSlots } from "./componentSlots";
 
-interface IComponentInstance {
-  vnode: any;
-  type: any;
-  setupState: any;
-  proxy: any;
-  slots: any;
-  provides: any;
-  emit: any;
-}
-
-export function createComponentInstance(vnode, parent): IComponentInstance {
+export function createComponentInstance(vnode, parent) {
   console.log("createComponentInstance parent", parent);
   const instance = {
     vnode,
@@ -25,6 +15,8 @@ export function createComponentInstance(vnode, parent): IComponentInstance {
     parent,
     // 为了跨级获取 provide需要继承父级的provide
     provides: parent ? parent.provides : {},
+    subTree: null,
+    isMounted: false,
     emit: () => {},
   };
 

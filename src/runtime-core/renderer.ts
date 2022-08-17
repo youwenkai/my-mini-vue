@@ -13,6 +13,8 @@ export function createRenderer(options) {
     createElement: hostCreateElement,
     patchProp: hostPatchProp,
     insert: hostInsert,
+    remove: hostRemove,
+    setElementText: hostSetElementText,
   } = options;
   function render(n1, n2, container, parentComponent) {
     patch(n1, n2, container, parentComponent);
@@ -101,7 +103,7 @@ export function createRenderer(options) {
 
   function processElement(n1, n2, container, parentComponent) {
     if (n1) {
-      patchElement(n1, n2, container);
+      patchElement(n1, n2, container, parentComponent);
     } else {
       mountElement(n2, container, parentComponent);
     }
@@ -124,7 +126,7 @@ export function createRenderer(options) {
     // container.append(el);
     hostInsert(el, container);
   }
-  function patchElement(n1, n2, container) {
+  function patchElement(n1, n2, container, parentComponent) {
     console.log("====patchElement");
     console.log("prev vnode:", n1);
     console.log("cur vnode:", n2);
@@ -132,7 +134,49 @@ export function createRenderer(options) {
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
     const el = (n2.el = n1.el);
+
+    patchChildren(n1, n2, el, parentComponent);
     patchProps(el, oldProps, newProps);
+  }
+
+  function patchChildren(n1, n2, container, parentComponent) {
+    // 子节点只有两种结构 text or array
+    const { shapeFlag: prevShapeFlag, children: c1 } = n1;
+    const { shapeFlag, children: c2 } = n2;
+
+    if (shapeFlag & ShapeFlag.TEXT_CHILDREN) {
+      // 重构
+
+      // 如果新的子节点是text
+      if (prevShapeFlag & ShapeFlag.ARRAY_CHILDREN) {
+        // 而旧的子节点是数组
+
+        // 把旧节点的children清空
+        unmountedChildre(c1);
+      }
+      // 1. 当旧节点是数组节点时，先清空children 在设置text
+      // 2. 当旧节点时文本节点时，直接设置text
+      if (c1 !== c2) {
+        hostSetElementText(container, c2);
+      }
+    } else {
+      // 新节点时children
+      if (prevShapeFlag & ShapeFlag.TEXT_CHILDREN) {
+        // 旧节点是文本
+        hostSetElementText(container, "");
+        mountChildren(c2, container, parentComponent);
+      } else {
+        // 旧节点是数组
+      }
+    }
+  }
+
+  function unmountedChildre(children) {
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i].el;
+
+      hostRemove(el);
+    }
   }
 
   function patchProps(el, oldProps, newProps) {

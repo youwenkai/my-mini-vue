@@ -167,10 +167,61 @@ export function createRenderer(options) {
         mountChildren(c2, container, parentComponent);
       } else {
         // 旧节点是数组
+
+        console.log("新旧节点都是数组，开始diff算法");
+        patchKeyedChildren(c1, c2, container, parentComponent);
       }
     }
   }
+  function patchKeyedChildren(c1, c2, container, parentComponent) {
+    let i = 0;
+    let e1 = c1.length - 1;
+    let e2 = c2.length - 1;
 
+    function isSameVNodeType(n1, n2) {
+      return n1.type === n2.type && n1.key === n2.key;
+    }
+    // 左侧
+    console.log("左侧");
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[i];
+      const n2 = c2[i];
+      console.group("================", i);
+      console.log(n1, n2);
+      // 如果节点是否相等
+      if (isSameVNodeType(n1, n2)) {
+        // console.log(n1, n2, "not same");
+        patch(n1, n2, container, parentComponent);
+      } else {
+        break;
+      }
+      console.groupEnd();
+      i++;
+    }
+
+    // 右侧
+    console.log("右侧");
+    while (i <= e1 && i <= e2) {
+      console.log("e1:", e1, "e2:", e2);
+      const n1 = c1[e1];
+      const n2 = c2[e2];
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, container, parentComponent);
+      } else {
+        break;
+      }
+      e1--;
+      e2--;
+    }
+    console.log(i, e1, e2);
+
+    if (i > e1) {
+      if (i <= e2) {
+        // 旧的子节点少于新的子节点 添加子节点
+        patch(null, c2[i], container, parentComponent);
+      }
+    }
+  }
   function unmountedChildren(children) {
     for (let i = 0; i < children.length; i++) {
       const el = children[i].el;

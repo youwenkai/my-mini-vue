@@ -152,7 +152,7 @@ export function createRenderer(options) {
         // 而旧的子节点是数组
 
         // 把旧节点的children清空
-        unmountedChildre(c1);
+        unmountedChildren(c1);
       }
       // 1. 当旧节点是数组节点时，先清空children 在设置text
       // 2. 当旧节点时文本节点时，直接设置text
@@ -171,7 +171,7 @@ export function createRenderer(options) {
     }
   }
 
-  function unmountedChildre(children) {
+  function unmountedChildren(children) {
     for (let i = 0; i < children.length; i++) {
       const el = children[i].el;
 

@@ -1,4 +1,5 @@
 import { effect } from "../reactive/src";
+import { EMPTY_OBJ } from "../shared";
 import { ShapeFlag } from "../shared/shapeFlags";
 import { createAppAPI } from "./apiCreateApp";
 import { createComponentInstance, setupComponent } from "./component";
@@ -111,7 +112,7 @@ export function createRenderer(options) {
     const el = (vnode.el = hostCreateElement(type));
     if (props) {
       for (const prop in props) {
-        hostPatchProp(el, prop, props[prop]);
+        hostPatchProp(el, prop, null, props[prop]);
       }
     }
 
@@ -127,7 +128,37 @@ export function createRenderer(options) {
     console.log("====patchElement");
     console.log("prev vnode:", n1);
     console.log("cur vnode:", n2);
+
+    const oldProps = n1.props || EMPTY_OBJ;
+    const newProps = n2.props || EMPTY_OBJ;
+    const el = (n2.el = n1.el);
+    patchProps(el, oldProps, newProps);
   }
+
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps !== newProps) {
+      // 遍历新的
+      for (const key in newProps) {
+        const prevProp = oldProps[key];
+        const nextProp = newProps[key];
+
+        //如果不相等 就触发更新
+        if (prevProp !== nextProp) {
+          hostPatchProp(el, key, prevProp, nextProp);
+        }
+      }
+
+      if (oldProps !== EMPTY_OBJ) {
+        // 遍历老的
+        for (const key in oldProps) {
+          if (!(key in newProps)) {
+            hostPatchProp(el, key, oldProps[key], null);
+          }
+        }
+      }
+    }
+  }
+
   function mountChildren(vnode: any, container: any, parentComponent) {
     // throw new Error("Function not implemented.");
     const { children } = vnode;

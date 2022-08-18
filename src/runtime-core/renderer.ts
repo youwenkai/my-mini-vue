@@ -239,6 +239,9 @@ export function createRenderer(options) {
       let s1 = i;
       let s2 = i;
 
+      // 当老的部分比新的部分多的时候
+      // 在比较了新的部分次数后, 剩下的老的部分不应该再去patch比较
+      // 而是直接删除
       let patched = 0;
       const toBePatched = e2 - s2 + 1;
 

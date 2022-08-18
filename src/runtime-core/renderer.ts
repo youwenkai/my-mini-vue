@@ -215,8 +215,8 @@ export function createRenderer(options) {
     }
     console.log(i, e1, e2);
 
-    // 旧的子节点少于新的子节点 添加子节点
     if (i > e1 && i <= e2) {
+      // 旧的子节点少于新的子节点 添加子节点
       console.log("增加新子节点");
       // 需要新增描点
       const nextPos = e2 + 1;
@@ -227,13 +227,54 @@ export function createRenderer(options) {
         patch(null, c2[i], container, parentComponent, anchor);
         i++;
       }
-    }
-    // 新的子节点少于老的子节点, 删除老节点
-    if (i > e2 && i <= e1) {
+    } else if (i > e2 && i <= e1) {
+      // 新的子节点少于老的子节点, 删除老节点
       console.log("删除老子节点");
       while (i <= e1) {
         hostRemove(c1[i].el);
         i++;
+      }
+    } else {
+      // 中间子节点对比
+      let s1 = i;
+      let s2 = i;
+
+      let patched = 0;
+      const toBePatched = e2 - s2 + 1;
+
+      // 建立新的自己点映射表 遍历新子节点数组
+      const keyToNewIndexMap = new Map();
+      for (let i = s2; i <= e2; i++) {
+        const nextChild = c2[i];
+        keyToNewIndexMap.set(nextChild.key, i);
+      }
+
+      for (let i = s1; i <= e1; i++) {
+        const prevChild = c1[i];
+
+        if (patched >= toBePatched) {
+          hostRemove(prevChild.el);
+          continue;
+        }
+
+        let newIndex;
+        if (!prevChild.key) {
+          newIndex = keyToNewIndexMap.get(prevChild.key);
+        } else {
+          for (let j = s2; j <= e2; j++) {
+            if (isSameVNodeType(prevChild, c2[j])) {
+              newIndex = j;
+              break;
+            }
+          }
+        }
+
+        if (newIndex) {
+          patch(prevChild, c2[newIndex], container, parentComponent, null);
+          patched++;
+        } else {
+          hostRemove(prevChild.el);
+        }
       }
     }
   }
